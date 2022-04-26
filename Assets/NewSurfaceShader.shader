@@ -6,7 +6,14 @@ Shader "Custom/NewSurfaceShader"
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
-        _TestColor ("testcolor", Color) = (1, 1, 1, 1) // float4 타입으로 색상값을 입력받는 인터페이스 추가
+
+        // 이번에는 r, g, b 값을 Range 슬라이더 인터페이스로 각각 받아 색상을 출력하기 위해 인터페이스를 3개 만듦.
+        _Red ("Red", Range(0, 1)) = 0
+        _Green("Green", Range(0, 1)) = 0
+        _Blue("Blue", Range(0, 1)) = 0
+
+        // 이번에는 Range 슬라이더 인터페이스로부터 값을 입력받는 뒤, o.Albedo 값에 더해줘서 밝기값을 조절하는 인터페이스를 추가함.
+        _BrightDark ("Brightness $ Darkness", Range(-1, 1)) = 0
     }
     SubShader
     {
@@ -30,16 +37,22 @@ Shader "Custom/NewSurfaceShader"
         half _Glossiness;
         half _Metallic;
         fixed4 _Color;
-        float4 _TestColor; // 인터페이스에서 지정한 것과 동일한 변수명과 동일한 타입으로 빈 영역에 변수 선언 
-        // 이때, 구조체나 함수 영역은 변수를 실제로 사용하는 부분이므로, 가급적 이보다 앞서있는 빈 영역에 변수 선언을 해주는 것이 좋음!
+
+        // 인터페이스에 쓴 것과 동일한 타입과 이름의 변수를 빈 영역(실제로 사용할 함수 영역 앞)에 선언해 줌.
+        // 참고로 Range 인터페이스는 슬라이더로 0 ~ 1 사이의 float 값을 입력받으므로, 각각의 입력값 타입은 float 이 적절하겠지
+        float _Red;
+        float _Green;
+        float _Blue;
+
+        float _BrightDark; // 인터페이스 추가하면 항상 빈 영역에 동일한 이름과 타입으로 변수 선언하기
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            o.Albedo = _TestColor.rgb; // 그리고 o.Albedo 에 인터페이스로부터 색상값을 입력받는 변수의 부분값(.rgb) 를 그대로 넣어주면 됨. (_TestColor 는 float4 이지만, o.Albedo 는 float3 니까, 3개의 부분값만 넣어주면 되겠지!)
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
+
+            // _BrightDark 는 -1 ~ 1 사이의 값을 입력받는 변수이므로, float3(-1, -1, -1) ~ float3(1, 1, 1) 사이의 값을 더해줘서 밝기값을 조절해주는 것과 동일함!
+            o.Albedo = float3(_Red, _Green, _Blue) + _BrightDark; // 인터페이스로부터 받은 각각의 입력값이 담긴 변수들을 float3() 에 담아 o.Albedo 에 할당해주면, 슬라이더로 입력받은 각각의 값에 따라 색상이 변경됨!
             o.Alpha = c.a;
         }
         ENDCG

@@ -2,15 +2,11 @@ Shader "Custom/NewSurfaceShader"
 {
     Properties
     {
-        // _Brightness ("Brightness!!", Range(0, 1)) = 0.5
-        // _TestFloat ("TestFloat!!", Float) = 0.5
-        // _TestColor ("TestColor!!", Color) = (0, 0, 1, 1)
-        // _TestVector ("TestVector!!", Vector) = (1, 1, 1, 1)
-        // _TestTexture ("Test texture!!", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
+        _TestColor ("testcolor", Color) = (1, 1, 1, 1) // float4 타입으로 색상값을 입력받는 인터페이스 추가
     }
     SubShader
     {
@@ -34,18 +30,16 @@ Shader "Custom/NewSurfaceShader"
         half _Glossiness;
         half _Metallic;
         fixed4 _Color;
+        float4 _TestColor; // 인터페이스에서 지정한 것과 동일한 변수명과 동일한 타입으로 빈 영역에 변수 선언 
+        // 이때, 구조체나 함수 영역은 변수를 실제로 사용하는 부분이므로, 가급적 이보다 앞서있는 빈 영역에 변수 선언을 해주는 것이 좋음!
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            float r = 1;
-            float2 gg = float2(0.5, 0);
-            float3 bbb = float3(1, 0, 1);
-
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            // o.Albedo = float3(r, 0, 0); // 변수 float r 은 1과 같으므로, 이 변수를 마치 숫자 1처럼 할당하는 식으로 사용 가능
-            //o.Albedo = float3(0, gg); // 얘도 마찬가지로 변수 gg 의 값 float(0.5, 0) 을 마치 숫자처럼 할당 가능
-            o.Albedo = float3(bbb.b, gg.r, r.r); // 이런 식으로, 각 변수의 rgba 로 접근해서 숫자처럼 할당 가능. -> bbb.b = 1, gg.r = 0.5, r.r = 1 이므로, float3(1, 0.5, 1) 이 들어간 상태임!
+            o.Albedo = _TestColor.rgb; // 그리고 o.Albedo 에 인터페이스로부터 색상값을 입력받는 변수의 부분값(.rgb) 를 그대로 넣어주면 됨. (_TestColor 는 float4 이지만, o.Albedo 는 float3 니까, 3개의 부분값만 넣어주면 되겠지!)
+            o.Metallic = _Metallic;
+            o.Smoothness = _Glossiness;
             o.Alpha = c.a;
         }
         ENDCG

@@ -37,27 +37,26 @@ Shader "Custom/NewSurfaceShader"
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
+
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            // o.Albedo = float3(1, 0, 0); // SurfaceOutputStandard.Albedo 값에 빨강색 넣어보기
-            
-            // SurfaceOutputStandard.Emission 으로 색상 더하기
-            // o.Emission = float3(1, 0, 0) + float3(0, 1, 0);
-            // o.Emission = float3(0.5, 0.5, 0.5) + float3(0.5, 0.5, 0.5);
-            
-            // SurfaceOutputStandard.Emission 으로 색상 곱하기
-            // o.Emission = float3(1, 0, 0) * float3(0, 1, 0);
-            // o.Emission = float3(0.5, 0.5, 0.5) * float3(0.5, 0.5, 0.5);
+            float4 test = float4(1, 0, 0, 1);
 
-            // 0 ~ 1 사이를 넘어가는 색상의 연산
-            // o.Emission = float3(1, 0, 0) + float3(1, 0, 0); // 내부적으로는 데이터를 float(2, 0, 0) 으로 저장하지만, 모니터는 float(1, 0, 0) 과 동일하게 표현함.
-
-            // float3 와 한 자리수와의 연산
-            o.Emission = float3(0, 0, 0); // -1 을 연산하는 건 -float3(1, 1, 1) 을 연산하는 것과 동일함. 따라서 데이터 처리는 float3(0, -1, -1) 로 저장되지만, 모니터는 float(0, 0, 0) 과 동일하게 표현함.
+            // o.Albedo = test; // p.93 에도 나와있듯, o.Albedo 는 fixed3, 즉 float3 인데, float4 를 받아도 색상이 적용되고 있음.
+            // 사실 이것은 변수를 올바르게 할당하는 방법은 아니며, 이 정도 실수는 엔진에서 알아서 처리해주기 때문에 에러만 나지 않는 것 뿐임. 
+            // 따라서, float4 를 float3 에 적용할 때, test.rgb 이런 식으로 float4 안에서 앞에 3가지 값만 접근하여 float3 형태로 넣어주는 게 맞음.
+            // o.Albedo = test.rgb;
             
-            // Metallic and smoothness come from slider variables
-            // o.Metallic = _Metallic;
-            // o.Smoothness = _Glossiness;
+            // 아래와 같이 test의 부분값들의 위치를 바꾸거나 중복해서 접근해도 자유롭게 사용 가능.
+            // o.Albedo = test.grb; // float(0, 1, 0) 과 같음.
+            // o.Albedo = test.bgr; // float(0, 0, 1) 과 같음.
+            // o.Albedo = test.rrr; // float(1, 1, 1) 과 같음.
+
+            // 아래와 같이 1자리 숫자를 넣는다고 해도, 이를 float3로 자동 변환해서 할당해 줌.  
+            // o.Albedo = 0.5; // float(0.5, 0.5, 0.5) 로 자동변환.
+            o.Albedo = test.b; // float(0, 0, 0) 로 자동변횐
+            // 이렇게 변수값을 자유자재로 바꾸는 것을 스위즐링(swizzling) 이라고 함.
+
             o.Alpha = c.a;
         }
         ENDCG

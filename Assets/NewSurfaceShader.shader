@@ -37,26 +37,15 @@ Shader "Custom/NewSurfaceShader"
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
+            float r = 1;
+            float2 gg = float2(0.5, 0);
+            float3 bbb = float3(1, 0, 1);
 
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            float4 test = float4(1, 0, 0, 1);
-
-            // o.Albedo = test; // p.93 에도 나와있듯, o.Albedo 는 fixed3, 즉 float3 인데, float4 를 받아도 색상이 적용되고 있음.
-            // 사실 이것은 변수를 올바르게 할당하는 방법은 아니며, 이 정도 실수는 엔진에서 알아서 처리해주기 때문에 에러만 나지 않는 것 뿐임. 
-            // 따라서, float4 를 float3 에 적용할 때, test.rgb 이런 식으로 float4 안에서 앞에 3가지 값만 접근하여 float3 형태로 넣어주는 게 맞음.
-            // o.Albedo = test.rgb;
-            
-            // 아래와 같이 test의 부분값들의 위치를 바꾸거나 중복해서 접근해도 자유롭게 사용 가능.
-            // o.Albedo = test.grb; // float(0, 1, 0) 과 같음.
-            // o.Albedo = test.bgr; // float(0, 0, 1) 과 같음.
-            // o.Albedo = test.rrr; // float(1, 1, 1) 과 같음.
-
-            // 아래와 같이 1자리 숫자를 넣는다고 해도, 이를 float3로 자동 변환해서 할당해 줌.  
-            // o.Albedo = 0.5; // float(0.5, 0.5, 0.5) 로 자동변환.
-            o.Albedo = test.b; // float(0, 0, 0) 로 자동변횐
-            // 이렇게 변수값을 자유자재로 바꾸는 것을 스위즐링(swizzling) 이라고 함.
-
+            // o.Albedo = float3(r, 0, 0); // 변수 float r 은 1과 같으므로, 이 변수를 마치 숫자 1처럼 할당하는 식으로 사용 가능
+            //o.Albedo = float3(0, gg); // 얘도 마찬가지로 변수 gg 의 값 float(0.5, 0) 을 마치 숫자처럼 할당 가능
+            o.Albedo = float3(bbb.b, gg.r, r.r); // 이런 식으로, 각 변수의 rgba 로 접근해서 숫자처럼 할당 가능. -> bbb.b = 1, gg.r = 0.5, r.r = 1 이므로, float3(1, 0.5, 1) 이 들어간 상태임!
             o.Alpha = c.a;
         }
         ENDCG
